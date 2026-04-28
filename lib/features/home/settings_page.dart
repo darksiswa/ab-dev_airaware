@@ -11,13 +11,11 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  bool autoDetectLocation = true;
   bool morningReport = true;
   bool dangerAlerts = true;
   bool asthma = false;
   bool allergies = false;
   String tempUnit = '°C';
-  String aqiStandard = 'US EPA';
 
   @override
   Widget build(BuildContext context) {
@@ -113,22 +111,6 @@ class _SettingsPageState extends State<SettingsPage> {
                     ),
                   ),
                   const SizedBox(height: 14),
-                  _sectionTitle(context, 'LOCATION'),
-                  const SizedBox(height: 6),
-                  _SettingsGroup(
-                    children: [
-                      _SwitchRow(
-                        icon: Icons.location_on,
-                        title: 'Auto-detect location',
-                        subtitle: 'Uses device GPS',
-                        value: autoDetectLocation,
-                        onChanged: (v) =>
-                            setState(() => autoDetectLocation = v),
-                        isLast: true,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 14),
                   _sectionTitle(context, 'NOTIFICATIONS'),
                   const SizedBox(height: 6),
                   _SettingsGroup(
@@ -196,37 +178,6 @@ class _SettingsPageState extends State<SettingsPage> {
                               label: '°F',
                               active: tempUnit == '°F',
                               onTap: () => setState(() => tempUnit = '°F'),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 14),
-                        Divider(color: AppColors.border.withValues(alpha: 0.8)),
-                        const SizedBox(height: 14),
-                        Text(
-                          'AQI Standard',
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
-                        const SizedBox(height: 10),
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: [
-                            _ChoiceChip(
-                              label: 'US EPA',
-                              active: aqiStandard == 'US EPA',
-                              onTap: () =>
-                                  setState(() => aqiStandard = 'US EPA'),
-                            ),
-                            _ChoiceChip(
-                              label: 'WHO',
-                              active: aqiStandard == 'WHO',
-                              onTap: () => setState(() => aqiStandard = 'WHO'),
-                            ),
-                            _ChoiceChip(
-                              label: 'EU CAQI',
-                              active: aqiStandard == 'EU CAQI',
-                              onTap: () =>
-                                  setState(() => aqiStandard = 'EU CAQI'),
                             ),
                           ],
                         ),
