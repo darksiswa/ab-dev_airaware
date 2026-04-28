@@ -85,9 +85,7 @@ class LocationService {
           debugPrint('[LOC] timeout, trying position stream fallback...');
         }
         final streamed = await Geolocator.getPositionStream(
-          locationSettings: const LocationSettings(
-            accuracy: LocationAccuracy.low,
-          ),
+          locationSettings: _streamLocationSettings(),
         ).first.timeout(_streamTimeout);
         return _grantedResultFromPosition(streamed);
       } on TimeoutException {
@@ -134,9 +132,7 @@ class LocationService {
           debugPrint('[LOC] getCurrentPosition attempt=$attempt');
         }
         final position = await Geolocator.getCurrentPosition(
-          locationSettings: const LocationSettings(
-            accuracy: LocationAccuracy.medium,
-          ),
+          locationSettings: _requestLocationSettings(),
         ).timeout(_locationTimeout);
         return position;
       } on TimeoutException {
@@ -213,5 +209,26 @@ class LocationService {
       return null;
     }
     return normalized;
+  }
+
+  LocationSettings _requestLocationSettings() {
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      return AndroidSettings(
+        accuracy: LocationAccuracy.high,
+        forceLocationManager: true,
+      );
+    }
+    return const LocationSettings(accuracy: LocationAccuracy.high);
+  }
+
+  LocationSettings _streamLocationSettings() {
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      return AndroidSettings(
+        accuracy: LocationAccuracy.high,
+        forceLocationManager: true,
+        intervalDuration: Duration(seconds: 1),
+      );
+    }
+    return const LocationSettings(accuracy: LocationAccuracy.high);
   }
 }
