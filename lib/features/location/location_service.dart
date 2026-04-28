@@ -40,6 +40,7 @@ class LocationService {
   static const Duration _locationTimeout = Duration(seconds: 10);
   static const Duration _geocodingTimeout = Duration(seconds: 4);
   static const Duration _streamTimeout = Duration(seconds: 12);
+  static const Duration _maxLastKnownAge = Duration(minutes: 3);
 
   Future<LocationFetchResult> getLocation() async {
     try {
@@ -74,11 +75,16 @@ class LocationService {
       return _grantedResultFromPosition(position);
     } on TimeoutException {
       final lastKnown = await Geolocator.getLastKnownPosition();
-      if (lastKnown != null) {
+      if (lastKnown != null && _isLastKnownFresh(lastKnown)) {
         if (kDebugMode) {
           debugPrint('[LOC] timeout, using last known position');
         }
         return _grantedResultFromPosition(lastKnown);
+      }
+      if (lastKnown != null && kDebugMode) {
+        debugPrint(
+          '[LOC] last known exists but stale (age too old), skipping...',
+        );
       }
       try {
         if (kDebugMode) {
@@ -209,6 +215,14 @@ class LocationService {
       return null;
     }
     return normalized;
+  }
+
+  bool _isLastKnownFresh(Position position) {
+    final age = DateTime.now().difference(position.timestamp);
+    if (kDebugMode) {
+      debugPrint('[LOC] last known age=${age.inSeconds}s');
+    }
+    return age <= _maxLastKnownAge;
   }
 
   LocationSettings _requestLocationSettings() {
