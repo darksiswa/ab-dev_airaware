@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:geocoding/geocoding.dart';
+import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 
 class LocationPoint {
@@ -36,13 +37,17 @@ class LocationService {
   static const double defaultLatitude = -6.2088;
   static const double defaultLongitude = 106.8456;
   static const String defaultCityLabel = 'Your Area';
-  static const Duration _locationTimeout = Duration(seconds: 8);
+  static const Duration _locationTimeout = Duration(seconds: 10);
   static const Duration _geocodingTimeout = Duration(seconds: 4);
+  static const Duration _streamTimeout = Duration(seconds: 12);
 
   Future<LocationFetchResult> getLocation() async {
     try {
       final serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
+        if (kDebugMode) {
+          debugPrint('[LOC] service disabled -> fallback default');
+        }
         return _defaultResult(LocationFetchStatus.serviceDisabled);
       }
 
@@ -52,35 +57,56 @@ class LocationService {
       }
 
       if (permission == LocationPermission.denied) {
+        if (kDebugMode) {
+          debugPrint('[LOC] permission denied -> fallback default');
+        }
         return _defaultResult(LocationFetchStatus.denied);
       }
 
       if (permission == LocationPermission.deniedForever) {
+        if (kDebugMode) {
+          debugPrint('[LOC] permission denied forever -> fallback default');
+        }
         return _defaultResult(LocationFetchStatus.deniedForever);
       }
 
-      final position = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(accuracy: LocationAccuracy.low),
-      ).timeout(_locationTimeout);
-      final roundedLat = _roundTo2(position.latitude);
-      final roundedLon = _roundTo2(position.longitude);
-      final areaLabel = await _resolveAreaLabel(
-        latitude: roundedLat,
-        longitude: roundedLon,
-      );
-
-      return LocationFetchResult(
-        status: LocationFetchStatus.granted,
-        point: LocationPoint(
-          latitude: roundedLat,
-          longitude: roundedLon,
-        ),
-        usingDefault: false,
-        cityLabel: areaLabel,
-      );
+      final position = await _resolveCurrentPositionWithRetry();
+      return _grantedResultFromPosition(position);
     } on TimeoutException {
+      final lastKnown = await Geolocator.getLastKnownPosition();
+      if (lastKnown != null) {
+        if (kDebugMode) {
+          debugPrint('[LOC] timeout, using last known position');
+        }
+        return _grantedResultFromPosition(lastKnown);
+      }
+      try {
+        if (kDebugMode) {
+          debugPrint('[LOC] timeout, trying position stream fallback...');
+        }
+        final streamed = await Geolocator.getPositionStream(
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.low,
+          ),
+        ).first.timeout(_streamTimeout);
+        return _grantedResultFromPosition(streamed);
+      } on TimeoutException {
+        if (kDebugMode) {
+          debugPrint('[LOC] stream fallback timeout');
+        }
+      } catch (_) {
+        if (kDebugMode) {
+          debugPrint('[LOC] stream fallback error');
+        }
+      }
+      if (kDebugMode) {
+        debugPrint('[LOC] timeout -> fallback default');
+      }
       return _defaultResult(LocationFetchStatus.fallbackDefault);
     } catch (_) {
+      if (kDebugMode) {
+        debugPrint('[LOC] unexpected error -> fallback default');
+      }
       return _defaultResult(LocationFetchStatus.fallbackDefault);
     }
   }
@@ -100,6 +126,51 @@ class LocationService {
   }
 
   double _roundTo2(double value) => (value * 100).roundToDouble() / 100;
+
+  Future<Position> _resolveCurrentPositionWithRetry() async {
+    for (var attempt = 1; attempt <= 2; attempt++) {
+      try {
+        if (kDebugMode) {
+          debugPrint('[LOC] getCurrentPosition attempt=$attempt');
+        }
+        final position = await Geolocator.getCurrentPosition(
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.medium,
+          ),
+        ).timeout(_locationTimeout);
+        return position;
+      } on TimeoutException {
+        if (kDebugMode) {
+          debugPrint('[LOC] getCurrentPosition timeout attempt=$attempt');
+        }
+        if (attempt < 2) {
+          await Future<void>.delayed(const Duration(seconds: 1));
+        }
+      }
+    }
+    throw TimeoutException('Could not get current position in time.');
+  }
+
+  Future<LocationFetchResult> _grantedResultFromPosition(Position position) async {
+    final roundedLat = _roundTo2(position.latitude);
+    final roundedLon = _roundTo2(position.longitude);
+    final areaLabel = await _resolveAreaLabel(
+      latitude: roundedLat,
+      longitude: roundedLon,
+    );
+    if (kDebugMode) {
+      debugPrint(
+        '[LOC] granted lat=${roundedLat.toStringAsFixed(2)} lon=${roundedLon.toStringAsFixed(2)} label=$areaLabel',
+      );
+    }
+
+    return LocationFetchResult(
+      status: LocationFetchStatus.granted,
+      point: LocationPoint(latitude: roundedLat, longitude: roundedLon),
+      usingDefault: false,
+      cityLabel: areaLabel,
+    );
+  }
 
   Future<String> _resolveAreaLabel({
     required double latitude,

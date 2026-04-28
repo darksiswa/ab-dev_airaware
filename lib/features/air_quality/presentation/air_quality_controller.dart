@@ -64,7 +64,37 @@ class AirQualityController extends ChangeNotifier {
   }
 
   Future<void> manualRefresh() async {
-    if (!canRefresh) {
+    LocationFetchResult? latestLocation;
+    try {
+      latestLocation = await _locationService.getLocation();
+    } catch (_) {
+      latestLocation = null;
+    }
+
+    var locationChanged = false;
+    if (latestLocation != null) {
+      final newLat = _roundTo2(latestLocation.point.latitude);
+      final newLon = _roundTo2(latestLocation.point.longitude);
+      locationChanged = newLat != _latitude || newLon != _longitude;
+      if (kDebugMode) {
+        debugPrint(
+          '[AQ CTRL] manualRefresh location old=${_latitude.toStringAsFixed(2)},${_longitude.toStringAsFixed(2)} new=${newLat.toStringAsFixed(2)},${newLon.toStringAsFixed(2)} changed=$locationChanged status=${latestLocation.status}',
+        );
+      }
+
+      locationStatus = latestLocation.status;
+      usingDefaultLocation = latestLocation.usingDefault;
+      locationLabel = latestLocation.cityLabel;
+      _latitude = newLat;
+      _longitude = newLon;
+    }
+
+    if (!locationChanged && !canRefresh) {
+      if (kDebugMode) {
+        debugPrint(
+          '[AQ CTRL] manualRefresh blocked by throttle remaining=${remainingThrottleDuration.inSeconds}s',
+        );
+      }
       infoMessage =
           'Data was refreshed recently. Please try again in ${_minutesAndSeconds(remainingThrottleDuration)}.';
       notifyListeners();
