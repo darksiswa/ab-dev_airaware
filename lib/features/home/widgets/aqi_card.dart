@@ -11,6 +11,7 @@ class AqiCard extends StatelessWidget {
     required this.status,
     required this.message,
     required this.aqi,
+    required this.onRefresh,
     super.key,
   });
 
@@ -19,6 +20,7 @@ class AqiCard extends StatelessWidget {
   final String status;
   final String message;
   final int aqi;
+  final VoidCallback onRefresh;
 
   @override
   Widget build(BuildContext context) {
@@ -45,32 +47,57 @@ class AqiCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Icon(
-                          Icons.location_on,
-                          size: 16,
-                          color: AppColors.accent,
+                        const Padding(
+                          padding: EdgeInsets.only(top: 2),
+                          child: Icon(
+                            Icons.location_on,
+                            size: 16,
+                            color: AppColors.accent,
+                          ),
                         ),
                         const SizedBox(width: 4),
-                        Text(
-                          city,
-                          style: Theme.of(context).textTheme.titleMedium,
+                        Expanded(
+                          child: Text(
+                            city,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(height: 1.15),
+                          ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 4),
-                    Text(
-                      updatedLabel,
-                      style: Theme.of(context).textTheme.bodyMedium,
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          updatedLabel,
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                        const SizedBox(width: 4),
+                        IconButton(
+                          onPressed: onRefresh,
+                          icon: const Icon(Icons.refresh, size: 18),
+                          color: AppColors.textSecondary,
+                          visualDensity: VisualDensity.compact,
+                          constraints: const BoxConstraints(
+                            minWidth: 28,
+                            minHeight: 28,
+                          ),
+                          padding: EdgeInsets.zero,
+                          tooltip: 'Refresh',
+                        ),
+                      ],
                     ),
                   ],
                 ),
               ),
+              const SizedBox(width: 8),
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 8,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(999),
                   border: Border.all(
@@ -79,6 +106,7 @@ class AqiCard extends StatelessWidget {
                   color: statusColor.withValues(alpha: 0.13),
                 ),
                 child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(Icons.shield, size: 14, color: statusColor),
                     const SizedBox(width: 6),
@@ -100,10 +128,11 @@ class AqiCard extends StatelessWidget {
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
               color: AppColors.textPrimary.withValues(alpha: 0.92),
               fontStyle: FontStyle.italic,
+              height: 1.35,
             ),
           ),
           const SizedBox(height: 20),
-          _AqiRing(aqi: aqi, status: status),
+          _AqiRing(aqi: aqi, color: statusColor, statusLabel: status),
         ],
       ),
     );
@@ -124,17 +153,18 @@ class AqiCard extends StatelessWidget {
 }
 
 class _AqiRing extends StatelessWidget {
-  const _AqiRing({required this.aqi, required this.status});
+  const _AqiRing({
+    required this.aqi,
+    required this.color,
+    required this.statusLabel,
+  });
 
   final int aqi;
-  final String status;
+  final Color color;
+  final String statusLabel;
 
   @override
   Widget build(BuildContext context) {
-    final color = status.toLowerCase() == 'moderate'
-        ? AppColors.moderateAccent
-        : AppColors.accent;
-
     return SizedBox(
       width: 270,
       height: 270,
@@ -198,7 +228,7 @@ class _AqiRing extends StatelessWidget {
                     border: Border.all(color: color.withValues(alpha: 0.5)),
                   ),
                   child: Text(
-                    status,
+                    statusLabel,
                     style: Theme.of(
                       context,
                     ).textTheme.labelLarge?.copyWith(color: color),

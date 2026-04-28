@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../shared/constants/app_colors.dart';
 import '../../shared/widgets/app_card.dart';
+import '../air_quality/domain/air_quality_model.dart';
+import '../air_quality/presentation/air_quality_controller.dart';
 import 'detail_page.dart';
 import 'settings_page.dart';
 import 'tips_page.dart';
@@ -62,16 +65,54 @@ class _HomeTab extends StatelessWidget {
 
   final VoidCallback onOpenDetail;
 
-  static const _city = 'Jakarta';
-  static const _aqi = 82;
-  static const _status = 'Moderate';
-  static const _pm25 = '35';
-  static const _uvIndex = '6';
-  static const _temperature = '30°';
-  static const _dust = 'Low';
-
   @override
   Widget build(BuildContext context) {
+    final controller = context.watch<AirQualityController>();
+
+    if (controller.isLoading && controller.data == null) {
+      return const Center(
+        child: CircularProgressIndicator(color: AppColors.accent),
+      );
+    }
+
+    if (controller.state == AirQualityViewState.error &&
+        controller.data == null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: AppCard(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Failed to load air quality data.',
+                  style: Theme.of(context).textTheme.titleMedium,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  controller.errorMessage ?? 'Please try again.',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                const SizedBox(height: 12),
+                FilledButton(
+                  onPressed: () =>
+                      context.read<AirQualityController>().initialize(),
+                  child: const Text('Retry'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    final data = controller.data;
+    if (data == null) {
+      return const SizedBox.shrink();
+    }
+
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(16, 10, 16, 20),
       child: LayoutBuilder(
@@ -86,16 +127,30 @@ class _HomeTab extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const AqiCard(
-                    city: _city,
-                    updatedLabel: 'Updated 2 min ago',
-                    status: _status,
-                    message:
-                        'Air quality is decent. Light outdoor activity is okay.',
-                    aqi: _aqi,
+                  AqiCard(
+                    city: data.cityLabel,
+                    updatedLabel:
+                        'Updated ${_formatLastUpdated(controller.lastUpdatedAt)}',
+                    status: _statusBadge(data.aqiStatus),
+                    message: _statusMessage(data),
+                    aqi: data.aqi,
+                    onRefresh: () async {
+                      await context.read<AirQualityController>().manualRefresh();
+                      if (!context.mounted) {
+                        return;
+                      }
+                      final message = context
+                          .read<AirQualityController>()
+                          .infoMessage;
+                      if (message != null) {
+                        ScaffoldMessenger.of(
+                          context,
+                        ).showSnackBar(SnackBar(content: Text(message)));
+                      }
+                    },
                   ),
                   const SizedBox(height: 14),
-                  const SizedBox(
+                  SizedBox(
                     height: 156,
                     child: Row(
                       children: [
@@ -103,34 +158,39 @@ class _HomeTab extends StatelessWidget {
                           child: AirMetricCard(
                             icon: Icons.blur_on,
                             title: 'PM2.5',
-                            value: _pm25,
+                            value: data.pm25Label,
                             subtitle: 'µg/m³',
                           ),
                         ),
-                        SizedBox(width: 6),
+                        const SizedBox(width: 6),
                         Expanded(
                           child: AirMetricCard(
-                            icon: Icons.wb_sunny_outlined,
+                            icon: Icons.grain,
                             title: 'UV INDEX',
-                            value: _uvIndex,
-                            subtitle: 'Moderate',
+                            value: data.uvIndexLabel,
+                            subtitle: data.uvIndex <= 2
+                                ? 'Low'
+                                : data.uvIndex <= 5
+                                ? 'Moderate'
+                                : data.uvIndex <= 7
+                                ? 'High'
+                                : 'Very High',
                           ),
                         ),
-                        SizedBox(width: 6),
+                        const SizedBox(width: 6),
                         Expanded(
                           child: AirMetricCard(
                             icon: Icons.thermostat,
                             title: 'TEMP',
-                            value: _temperature,
-                            subtitle: 'Feels like 32°',
+                            value: data.temperatureLabel,
                           ),
                         ),
-                        SizedBox(width: 6),
+                        const SizedBox(width: 6),
                         Expanded(
                           child: AirMetricCard(
-                            icon: Icons.grain,
-                            title: 'DUST',
-                            value: _dust,
+                            icon: Icons.water_drop,
+                            title: 'HUMIDITY',
+                            value: data.humidityLabel,
                           ),
                         ),
                       ],
@@ -168,10 +228,7 @@ class _HomeTab extends StatelessWidget {
                             borderRadius: BorderRadius.circular(12),
                             color: AppColors.accentSoft,
                           ),
-                          child: const Icon(
-                            Icons.check,
-                            color: AppColors.accent,
-                          ),
+                          child: const Icon(Icons.air, color: AppColors.accent),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
@@ -179,18 +236,12 @@ class _HomeTab extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Outdoor Activity',
-                                style: Theme.of(context).textTheme.bodyMedium
-                                    ?.copyWith(letterSpacing: 1),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'Proceed With Caution',
+                                data.aqiStatus,
                                 style: Theme.of(context).textTheme.titleMedium,
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                'Wear a mask if sensitive and avoid peak traffic hours.',
+                                'Wind speed: ${data.windSpeedLabel}',
                                 style: Theme.of(context).textTheme.bodyMedium,
                               ),
                             ],
@@ -200,10 +251,7 @@ class _HomeTab extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 14),
-                  const AiInsightCard(
-                    message:
-                        'AQI in Jakarta is moderate right now (82). Best time for outdoor activity is before 9 AM or after 6 PM. Keep windows partially closed in high-traffic zones.',
-                  ),
+                  AiInsightCard(message: data.insight),
                 ],
               ),
             ),
@@ -211,6 +259,31 @@ class _HomeTab extends StatelessWidget {
         },
       ),
     );
+  }
+
+  String _formatLastUpdated(DateTime? value) {
+    if (value == null) {
+      return '-';
+    }
+
+    final hour = value.hour.toString().padLeft(2, '0');
+    final minute = value.minute.toString().padLeft(2, '0');
+    return '$hour:$minute';
+  }
+
+  String _statusBadge(String fullStatus) {
+    if (fullStatus == 'Unhealthy for Sensitive Groups') {
+      return 'Sensitive';
+    }
+    return fullStatus;
+  }
+
+  String _statusMessage(AirQualityModel data) {
+    return data.aqiStatus == 'Good'
+        ? 'Great day to be outside.'
+        : data.aqiStatus == 'Moderate'
+        ? 'Air quality is moderate. Take precautions if you are sensitive.'
+        : 'Air quality is unhealthy. Limit prolonged outdoor activity.';
   }
 }
 

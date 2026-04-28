@@ -20,13 +20,13 @@ class AirMetricCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppCard(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Icon(icon, color: AppColors.accent, size: 20),
-          const SizedBox(height: 8),
+          const SizedBox(height: 5),
           FittedBox(
             fit: BoxFit.scaleDown,
             child: Text(
@@ -40,7 +40,7 @@ class AirMetricCard extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: 2),
+          const SizedBox(height: 1),
           Text(
             title,
             maxLines: 1,
@@ -53,9 +53,9 @@ class AirMetricCard extends StatelessWidget {
               color: AppColors.textPrimary.withValues(alpha: 0.75),
             ),
           ),
-          const SizedBox(height: 2),
+          const SizedBox(height: 1),
           SizedBox(
-            height: 16,
+            height: 14,
             child: subtitle == null
                 ? const SizedBox.shrink()
                 : Text(
@@ -66,7 +66,7 @@ class AirMetricCard extends StatelessWidget {
                     textAlign: TextAlign.center,
                     style: Theme.of(
                       context,
-                    ).textTheme.bodyMedium?.copyWith(fontSize: 11),
+                    ).textTheme.bodyMedium?.copyWith(fontSize: 10, height: 1.1),
                   ),
           ),
         ],
