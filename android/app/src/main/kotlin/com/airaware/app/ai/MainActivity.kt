@@ -1,0 +1,5 @@
+package com.airaware.app.ai
+
+import io.flutter.embedding.android.FlutterActivity
+
+class MainActivity : FlutterActivity()
