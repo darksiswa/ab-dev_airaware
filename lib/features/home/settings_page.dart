@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../shared/constants/app_colors.dart';
 import '../../shared/widgets/app_card.dart';
+import '../settings/domain/health_config.dart';
 import '../settings/presentation/health_config_controller.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -15,7 +16,6 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   bool morningReport = true;
   bool dangerAlerts = true;
-  String tempUnit = '°C';
 
   @override
   Widget build(BuildContext context) {
@@ -175,14 +175,22 @@ class _SettingsPageState extends State<SettingsPage> {
                           children: [
                             _ChoiceChip(
                               label: '°C',
-                              active: tempUnit == '°C',
-                              onTap: () => setState(() => tempUnit = '°C'),
+                              active:
+                                  config.temperatureUnit ==
+                                  TemperatureUnit.celsius,
+                              onTap: () => health.setTemperatureUnit(
+                                TemperatureUnit.celsius,
+                              ),
                             ),
                             const SizedBox(width: 8),
                             _ChoiceChip(
                               label: '°F',
-                              active: tempUnit == '°F',
-                              onTap: () => setState(() => tempUnit = '°F'),
+                              active:
+                                  config.temperatureUnit ==
+                                  TemperatureUnit.fahrenheit,
+                              onTap: () => health.setTemperatureUnit(
+                                TemperatureUnit.fahrenheit,
+                              ),
                             ),
                           ],
                         ),

@@ -32,4 +32,10 @@ class HealthConfigController extends ChangeNotifier {
     notifyListeners();
     await _storage.save(_config);
   }
+
+  Future<void> setTemperatureUnit(TemperatureUnit unit) async {
+    _config = _config.copyWith(temperatureUnit: unit);
+    notifyListeners();
+    await _storage.save(_config);
+  }
 }

@@ -7,6 +7,7 @@ import '../../shared/widgets/app_card.dart';
 import '../air_quality/domain/air_quality_model.dart';
 import '../air_quality/domain/air_precaution_generator.dart';
 import '../air_quality/presentation/air_quality_controller.dart';
+import '../settings/domain/health_config.dart';
 import '../settings/presentation/health_config_controller.dart';
 import 'detail_page.dart';
 import 'settings_page.dart';
@@ -262,7 +263,10 @@ class _HomeTab extends StatelessWidget {
                           child: AirMetricCard(
                             icon: Icons.thermostat,
                             title: 'TEMP',
-                            value: data.temperatureLabel,
+                            value: _temperatureLabel(
+                              data.temperature,
+                              healthConfig.temperatureUnit,
+                            ),
                           ),
                         ),
                         const SizedBox(width: 6),
@@ -357,6 +361,14 @@ class _HomeTab extends StatelessWidget {
         : data.aqiStatus == 'Moderate'
         ? 'Air quality is moderate. Take precautions if you are sensitive.'
         : 'Air quality is unhealthy. Limit prolonged outdoor activity.';
+  }
+
+  String _temperatureLabel(double celsius, TemperatureUnit unit) {
+    if (unit == TemperatureUnit.fahrenheit) {
+      final f = (celsius * 9 / 5) + 32;
+      return '${f.toStringAsFixed(0)}°F';
+    }
+    return '${celsius.toStringAsFixed(0)}°C';
   }
 
   bool _isDebugOnlyInfoMessage(String message) {
