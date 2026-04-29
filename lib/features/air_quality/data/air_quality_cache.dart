@@ -31,6 +31,10 @@ class AirQualityCache {
     _entries[keyFor(entry.latitude, entry.longitude)] = entry;
   }
 
+  void invalidate(double latitude, double longitude) {
+    _entries.remove(keyFor(latitude, longitude));
+  }
+
   bool isFresh(AirQualityCacheEntry entry, DateTime now) {
     return now.difference(entry.lastFetchedAt) < throttleDuration;
   }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 
 import '../../shared/constants/app_colors.dart';
@@ -11,6 +12,9 @@ import 'tips_page.dart';
 import 'widgets/ai_insight_card.dart';
 import 'widgets/air_metric_card.dart';
 import 'widgets/aqi_card.dart';
+
+const bool _showDebugPanel = kDebugMode &&
+    bool.fromEnvironment('SHOW_DEBUG_UI', defaultValue: false);
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -69,9 +73,19 @@ class _HomeTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = context.watch<AirQualityController>();
 
-    if (controller.isLoading && controller.data == null) {
-      return const Center(
-        child: CircularProgressIndicator(color: AppColors.accent),
+    if (controller.isInitialLoading && controller.data == null) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const CircularProgressIndicator(color: AppColors.accent),
+            const SizedBox(height: 12),
+            Text(
+              controller.locationStatusText,
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+          ],
+        ),
       );
     }
 
@@ -127,10 +141,68 @@ class _HomeTab extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  Row(
+                    children: [
+                      const Spacer(),
+                      if (controller.shouldShowRetryLocation)
+                        TextButton(
+                          onPressed: () async {
+                            await context
+                                .read<AirQualityController>()
+                                .retryLocation();
+                            if (!context.mounted) {
+                              return;
+                            }
+                            final message = context
+                                .read<AirQualityController>()
+                                .infoMessage;
+                            if (message != null) {
+                              ScaffoldMessenger.of(
+                                context,
+                              ).showSnackBar(SnackBar(content: Text(message)));
+                            }
+                          },
+                          child: const Text('Re-check Location'),
+                        ),
+                    ],
+                  ),
+                  if (controller.isRefreshing) ...[
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        const SizedBox(
+                          width: 14,
+                          height: 14,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: AppColors.accent,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Refreshing...',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ],
+                    ),
+                  ],
+                  if (_showDebugPanel)
+                    _DebugPanel(controller: controller),
+                  if (controller.infoMessage != null &&
+                      (_showDebugPanel ||
+                          !_isDebugOnlyInfoMessage(controller.infoMessage!))) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      controller.infoMessage!,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: AppColors.textSecondary.withValues(alpha: 0.9),
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 8),
                   AqiCard(
                     city: data.cityLabel,
-                    updatedLabel:
-                        'Updated ${_formatLastUpdated(controller.lastUpdatedAt)}',
+                    updatedLabel: controller.lastUpdatedRelativeText,
                     status: _statusBadge(data.aqiStatus),
                     message: _statusMessage(data),
                     aqi: data.aqi,
@@ -261,16 +333,6 @@ class _HomeTab extends StatelessWidget {
     );
   }
 
-  String _formatLastUpdated(DateTime? value) {
-    if (value == null) {
-      return '-';
-    }
-
-    final hour = value.hour.toString().padLeft(2, '0');
-    final minute = value.minute.toString().padLeft(2, '0');
-    return '$hour:$minute';
-  }
-
   String _statusBadge(String fullStatus) {
     if (fullStatus == 'Unhealthy for Sensitive Groups') {
       return 'Sensitive';
@@ -284,6 +346,119 @@ class _HomeTab extends StatelessWidget {
         : data.aqiStatus == 'Moderate'
         ? 'Air quality is moderate. Take precautions if you are sensitive.'
         : 'Air quality is unhealthy. Limit prolonged outdoor activity.';
+  }
+
+  bool _isDebugOnlyInfoMessage(String message) {
+    return message == 'Showing cached data from the last update.' ||
+        message == 'Area changed. Updating air quality data…';
+  }
+}
+
+class _DebugPanel extends StatelessWidget {
+  const _DebugPanel({required this.controller});
+
+  final AirQualityController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SizedBox(height: 6),
+        OutlinedButton(
+          onPressed: () async {
+            await context
+                .read<AirQualityController>()
+                .forceRecheckDeviceLocation();
+          },
+          child: const Text('Force Re-check Device Location'),
+        ),
+        const SizedBox(height: 6),
+        AppCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Debug Location Override',
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Use this only when emulator location provider fails.',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  OutlinedButton(
+                    onPressed: () {
+                      context
+                          .read<AirQualityController>()
+                          .applyDebugLocationOverride(
+                            label: 'Dubai',
+                            latitude: 25.2048,
+                            longitude: 55.2708,
+                          );
+                    },
+                    child: const Text('Dubai'),
+                  ),
+                  OutlinedButton(
+                    onPressed: () {
+                      context
+                          .read<AirQualityController>()
+                          .applyDebugLocationOverride(
+                            label: 'Jakarta',
+                            latitude: -6.2088,
+                            longitude: 106.8456,
+                          );
+                    },
+                    child: const Text('Jakarta'),
+                  ),
+                  OutlinedButton(
+                    onPressed: () {
+                      context
+                          .read<AirQualityController>()
+                          .applyDebugLocationOverride(
+                            label: 'Bandung',
+                            latitude: -6.9175,
+                            longitude: 107.6191,
+                          );
+                    },
+                    child: const Text('Bandung'),
+                  ),
+                  OutlinedButton(
+                    onPressed: () {
+                      context
+                          .read<AirQualityController>()
+                          .applyDebugLocationOverride(
+                            label: 'Seoul',
+                            latitude: 37.5665,
+                            longitude: 126.9780,
+                          );
+                    },
+                    child: const Text('Seoul'),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 6),
+        AppCard(
+          child: Text(
+            [
+              'DBG source=${controller.debugLocationSource ?? '-'}',
+              'DBG cacheKey=${controller.debugCacheKey ?? '-'}',
+              'DBG cacheReused=${controller.debugCacheReused?.toString() ?? '-'}',
+              'DBG apiFetched=${controller.debugApiFetched?.toString() ?? '-'}',
+            ].join('\n'),
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        ),
+      ],
+    );
   }
 }
 

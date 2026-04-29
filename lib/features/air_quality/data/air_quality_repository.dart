@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../domain/air_insight_generator.dart';
 import '../domain/air_quality_model.dart';
@@ -37,6 +40,51 @@ class AirQualityRepository {
   final AirQualityCache _cache;
   final AqiCalculator _aqiCalculator;
   final AirInsightGenerator _insightGenerator;
+  static const _latestSnapshotKey = 'aq_latest_snapshot';
+
+  String cacheKeyFor(double latitude, double longitude) {
+    return _cache.keyFor(latitude, longitude);
+  }
+
+  void invalidateCacheFor(double latitude, double longitude) {
+    _cache.invalidate(latitude, longitude);
+    if (kDebugMode) {
+      debugPrint('[AQ REPO] cache invalidated key=${_cache.keyFor(latitude, longitude)}');
+    }
+  }
+
+  Future<AirQualityFetchResult?> getPersistedSnapshot() async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString(_latestSnapshotKey);
+    if (raw == null || raw.isEmpty) {
+      return null;
+    }
+
+    try {
+      final json = jsonDecode(raw) as Map<String, dynamic>;
+      final model = AirQualityModel.fromJson(json);
+      final entry = AirQualityCacheEntry(
+        data: model,
+        lastFetchedAt: model.fetchedAt,
+        latitude: model.latitude,
+        longitude: model.longitude,
+      );
+      _cache.save(entry);
+      final now = DateTime.now();
+      return AirQualityFetchResult(
+        data: model,
+        fromCache: true,
+        throttled: false,
+        lastUpdatedAt: model.fetchedAt,
+        remainingThrottle: _cache.remainingThrottle(entry, now),
+      );
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[AQ REPO] persisted snapshot parse error: $e');
+      }
+      return null;
+    }
+  }
 
   Future<AirQualityFetchResult> fetch({
     required double latitude,
@@ -47,10 +95,17 @@ class AirQualityRepository {
   }) async {
     final now = DateTime.now();
     final cached = _cache.get(latitude, longitude);
+    final cacheKey = _cache.keyFor(latitude, longitude);
+    if (kDebugMode) {
+      debugPrint('[AQ REPO] fetch key=$cacheKey forceRefresh=$forceRefresh');
+    }
 
     if (cached != null && _cache.isFresh(cached, now)) {
       if (kDebugMode) {
-        debugPrint('[AQ REPO] return fresh cache');
+        final age = now.difference(cached.lastFetchedAt);
+        debugPrint(
+          '[AQ REPO] cache hit reused=true key=$cacheKey ageSec=${age.inSeconds}',
+        );
       }
       final remaining = _cache.remainingThrottle(cached, now);
       return AirQualityFetchResult(
@@ -64,7 +119,7 @@ class AirQualityRepository {
 
     try {
       if (kDebugMode) {
-        debugPrint('[AQ REPO] fetching from API...');
+        debugPrint('[AQ REPO] cache miss/expired -> apiFetch=true key=$cacheKey');
       }
       final response = await _apiClient.fetch(
         latitude: latitude,
@@ -114,6 +169,7 @@ class AirQualityRepository {
           longitude: longitude,
         ),
       );
+      await _saveLatestSnapshot(data);
 
       return AirQualityFetchResult(
         data: data,
@@ -128,7 +184,10 @@ class AirQualityRepository {
       }
       if (cached != null) {
         if (kDebugMode) {
-          debugPrint('[AQ REPO] fallback to stale cache');
+          final age = now.difference(cached.lastFetchedAt);
+          debugPrint(
+            '[AQ REPO] fallback stale cache reused=true key=$cacheKey ageSec=${age.inSeconds}',
+          );
         }
         return AirQualityFetchResult(
           data: cached.data,
@@ -140,6 +199,17 @@ class AirQualityRepository {
       }
 
       rethrow;
+    }
+  }
+
+  Future<void> _saveLatestSnapshot(AirQualityModel model) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_latestSnapshotKey, jsonEncode(model.toJson()));
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[AQ REPO] persisted snapshot save error: $e');
+      }
     }
   }
 
