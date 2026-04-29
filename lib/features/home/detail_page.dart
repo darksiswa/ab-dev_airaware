@@ -6,15 +6,19 @@ import 'package:provider/provider.dart';
 import '../../shared/constants/app_colors.dart';
 import '../../shared/widgets/app_card.dart';
 import '../air_quality/domain/aqi_calculator.dart';
+import '../air_quality/domain/air_precaution_generator.dart';
 import '../air_quality/domain/air_quality_model.dart';
 import '../air_quality/presentation/air_quality_controller.dart';
+import '../settings/presentation/health_config_controller.dart';
 
 class DetailPage extends StatelessWidget {
   const DetailPage({super.key});
+  static const _precautionGenerator = AirPrecautionGenerator();
 
   @override
   Widget build(BuildContext context) {
     final controller = context.watch<AirQualityController>();
+    final healthConfig = context.watch<HealthConfigController>().config;
     final data = controller.data;
 
     if (data == null) {
@@ -22,6 +26,10 @@ class DetailPage extends StatelessWidget {
         child: CircularProgressIndicator(color: AppColors.accent),
       );
     }
+    final precaution = _precautionGenerator.generate(
+      data: data,
+      config: healthConfig,
+    );
 
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(16, 10, 16, 20),
@@ -46,7 +54,7 @@ class DetailPage extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 14),
-                  _SummaryCard(data: data),
+                  _SummaryCard(data: data, precaution: precaution),
                   const SizedBox(height: 20),
                   const _SectionLabel(label: 'POLLUTANTS'),
                   const SizedBox(height: 10),
@@ -156,9 +164,10 @@ class _SectionLabel extends StatelessWidget {
 }
 
 class _SummaryCard extends StatelessWidget {
-  const _SummaryCard({required this.data});
+  const _SummaryCard({required this.data, required this.precaution});
 
   final AirQualityModel data;
+  final AirPrecaution precaution;
 
   @override
   Widget build(BuildContext context) {
@@ -200,7 +209,7 @@ class _SummaryCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  data.insight,
+                  precaution.message,
                   style: Theme.of(
                     context,
                   ).textTheme.bodyMedium?.copyWith(height: 1.35),

@@ -9,6 +9,8 @@ class AirQualityApiResponse {
     required this.uvIndex,
     required this.pm25,
     required this.pm10,
+    this.dust,
+    this.pollen,
     required this.no2,
     required this.o3,
     required this.pm25Hourly,
@@ -21,6 +23,8 @@ class AirQualityApiResponse {
   final double uvIndex;
   final double pm25;
   final double pm10;
+  final double? dust;
+  final double? pollen;
   final double no2;
   final double o3;
   final List<HourlyPm25Point> pm25Hourly;
@@ -144,6 +148,8 @@ class AirQualityApiClient {
         uvIndex: _toDouble(weatherCurrent['uv_index']),
         pm25: _toDouble(airCurrent['pm2_5']),
         pm10: _toDouble(airCurrent['pm10']),
+        dust: _toNullableDouble(airCurrent['dust']),
+        pollen: _toNullableDouble(airCurrent['pollen']),
         no2: _toDouble(airCurrent['nitrogen_dioxide']),
         o3: _toDouble(airCurrent['ozone']),
         pm25Hourly: pm25Hourly,
@@ -180,6 +186,16 @@ class AirQualityApiClient {
     throw const AirQualityApiException(
       'Unexpected number format from Open-Meteo.',
     );
+  }
+
+  double? _toNullableDouble(Object? value) {
+    if (value == null) {
+      return null;
+    }
+    if (value is num) {
+      return value.toDouble();
+    }
+    return null;
   }
 
   List<HourlyPm25Point> _parseHourlyPm25({

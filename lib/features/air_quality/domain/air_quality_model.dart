@@ -50,6 +50,8 @@ class AirQualityModel {
     required this.uvIndex,
     required this.pm25,
     required this.pm10,
+    this.dust,
+    this.pollen,
     required this.no2,
     required this.o3,
     required this.aqi,
@@ -72,6 +74,8 @@ class AirQualityModel {
 
   final double pm25;
   final double pm10;
+  final double? dust;
+  final double? pollen;
   final double no2;
   final double o3;
 
@@ -102,6 +106,8 @@ class AirQualityModel {
       'uvIndex': uvIndex,
       'pm25': pm25,
       'pm10': pm10,
+      'dust': dust,
+      'pollen': pollen,
       'no2': no2,
       'o3': o3,
       'aqi': aqi,
@@ -126,6 +132,8 @@ class AirQualityModel {
       uvIndex: (json['uvIndex'] as num).toDouble(),
       pm25: (json['pm25'] as num).toDouble(),
       pm10: (json['pm10'] as num).toDouble(),
+      dust: (json['dust'] as num?)?.toDouble(),
+      pollen: (json['pollen'] as num?)?.toDouble(),
       no2: (json['no2'] as num).toDouble(),
       o3: (json['o3'] as num).toDouble(),
       aqi: (json['aqi'] as num).toInt(),
@@ -138,8 +146,8 @@ class AirQualityModel {
       fetchedAt: DateTime.parse(json['fetchedAt'] as String),
       usingDefaultLocation: json['usingDefaultLocation'] as bool? ?? false,
       forecast7Days: forecastRaw
-          .whereType<Map<String, dynamic>>()
-          .map(DailyAqiForecast.fromJson)
+          .whereType<Map>()
+          .map((item) => DailyAqiForecast.fromJson(item.cast<String, dynamic>()))
           .toList(),
     );
   }

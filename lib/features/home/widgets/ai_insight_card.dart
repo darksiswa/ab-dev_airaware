@@ -4,8 +4,13 @@ import '../../../shared/constants/app_colors.dart';
 import '../../../shared/widgets/app_card.dart';
 
 class AiInsightCard extends StatelessWidget {
-  const AiInsightCard({required this.message, super.key});
+  const AiInsightCard({
+    required this.title,
+    required this.message,
+    super.key,
+  });
 
+  final String title;
   final String message;
 
   @override
@@ -30,7 +35,7 @@ class AiInsightCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'AI Air Insight',
+                  title,
                   style: Theme.of(
                     context,
                   ).textTheme.titleMedium?.copyWith(fontSize: 17),

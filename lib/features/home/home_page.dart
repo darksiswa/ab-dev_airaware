@@ -5,7 +5,9 @@ import 'package:provider/provider.dart';
 import '../../shared/constants/app_colors.dart';
 import '../../shared/widgets/app_card.dart';
 import '../air_quality/domain/air_quality_model.dart';
+import '../air_quality/domain/air_precaution_generator.dart';
 import '../air_quality/presentation/air_quality_controller.dart';
+import '../settings/presentation/health_config_controller.dart';
 import 'detail_page.dart';
 import 'settings_page.dart';
 import 'tips_page.dart';
@@ -68,10 +70,12 @@ class _HomeTab extends StatelessWidget {
   const _HomeTab({required this.onOpenDetail});
 
   final VoidCallback onOpenDetail;
+  static const _precautionGenerator = AirPrecautionGenerator();
 
   @override
   Widget build(BuildContext context) {
     final controller = context.watch<AirQualityController>();
+    final healthConfig = context.watch<HealthConfigController>().config;
 
     if (controller.isInitialLoading && controller.data == null) {
       return Center(
@@ -126,6 +130,10 @@ class _HomeTab extends StatelessWidget {
     if (data == null) {
       return const SizedBox.shrink();
     }
+    final precaution = _precautionGenerator.generate(
+      data: data,
+      config: healthConfig,
+    );
 
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(16, 10, 16, 20),
@@ -323,7 +331,10 @@ class _HomeTab extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 14),
-                  AiInsightCard(message: data.insight),
+                  AiInsightCard(
+                    title: precaution.title,
+                    message: precaution.message,
+                  ),
                 ],
               ),
             ),

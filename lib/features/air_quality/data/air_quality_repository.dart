@@ -150,6 +150,8 @@ class AirQualityRepository {
         uvIndex: response.uvIndex,
         pm25: response.pm25,
         pm10: response.pm10,
+        dust: response.dust,
+        pollen: response.pollen,
         no2: response.no2,
         o3: response.o3,
         aqi: aqiResult.aqi,

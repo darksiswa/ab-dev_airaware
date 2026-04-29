@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../shared/constants/app_colors.dart';
 import '../../shared/widgets/app_card.dart';
+import '../settings/presentation/health_config_controller.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -13,12 +15,13 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   bool morningReport = true;
   bool dangerAlerts = true;
-  bool asthma = false;
-  bool allergies = false;
   String tempUnit = '°C';
 
   @override
   Widget build(BuildContext context) {
+    final health = context.watch<HealthConfigController>();
+    final config = health.config;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(16, 10, 16, 20),
       child: LayoutBuilder(
@@ -139,17 +142,19 @@ class _SettingsPageState extends State<SettingsPage> {
                     children: [
                       _SwitchRow(
                         icon: Icons.air,
-                        title: 'Asthma',
-                        subtitle: 'Lower AQI alert threshold',
-                        value: asthma,
-                        onChanged: (v) => setState(() => asthma = v),
+                        title: 'Asthma Mode',
+                        subtitle:
+                            'Show stronger breathing precautions when air quality may affect asthma.',
+                        value: config.asthmaMode,
+                        onChanged: (v) => health.setAsthmaMode(v),
                       ),
                       _SwitchRow(
                         icon: Icons.masks_rounded,
-                        title: 'Allergies',
-                        subtitle: 'Highlight pollen info',
-                        value: allergies,
-                        onChanged: (v) => setState(() => allergies = v),
+                        title: 'Allergy Mode',
+                        subtitle:
+                            'Show allergy-focused warnings for dust, PM10, and pollen when available.',
+                        value: config.allergyMode,
+                        onChanged: (v) => health.setAllergyMode(v),
                         isLast: true,
                       ),
                     ],
