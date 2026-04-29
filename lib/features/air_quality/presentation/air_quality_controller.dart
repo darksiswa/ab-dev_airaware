@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 import '../../location/location_service.dart';
+import '../../notifications/data/notification_settings_storage.dart';
 import '../data/air_quality_cache.dart';
 import '../data/air_quality_repository.dart';
 import '../domain/air_quality_model.dart';
@@ -15,12 +16,14 @@ class AirQualityController extends ChangeNotifier with WidgetsBindingObserver {
     required AirQualityRepository repository,
     required LocationService locationService,
   }) : _repository = repository,
-       _locationService = locationService {
+       _locationService = locationService,
+       _notificationStorage = NotificationSettingsStorage() {
     WidgetsBinding.instance.addObserver(this);
   }
 
   final AirQualityRepository _repository;
   final LocationService _locationService;
+  final NotificationSettingsStorage _notificationStorage;
 
   AirQualityViewState state = AirQualityViewState.initial;
   AirQualityModel? data;
@@ -327,6 +330,12 @@ class AirQualityController extends ChangeNotifier with WidgetsBindingObserver {
     // TODO: Background air quality alert requires separate opt-in permission
     // and background task design.
     _load(requestLocation: false, forceRefresh: true, silent: true);
+    unawaited(
+      _notificationStorage.saveLastKnownRoundedCoordinate(
+        latitude: _latitude,
+        longitude: _longitude,
+      ),
+    );
   }
 
   void _startDebugForegroundRecheck() {
@@ -433,6 +442,12 @@ class AirQualityController extends ChangeNotifier with WidgetsBindingObserver {
         );
       }
       lastUpdatedAt = result.lastUpdatedAt;
+      unawaited(
+        _notificationStorage.saveLastKnownRoundedCoordinate(
+          latitude: _latitude,
+          longitude: _longitude,
+        ),
+      );
       state = AirQualityViewState.loaded;
       isInitialLoading = false;
 

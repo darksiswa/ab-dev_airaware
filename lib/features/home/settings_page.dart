@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../shared/constants/app_colors.dart';
 import '../../shared/widgets/app_card.dart';
+import '../notifications/presentation/notification_settings_controller.dart';
 import '../settings/domain/health_config.dart';
 import '../settings/presentation/health_config_controller.dart';
 
@@ -14,13 +15,12 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  bool morningReport = true;
-  bool dangerAlerts = true;
-
   @override
   Widget build(BuildContext context) {
     final health = context.watch<HealthConfigController>();
     final config = health.config;
+    final notification = context.watch<NotificationSettingsController>();
+    final notifSettings = notification.settings;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(16, 10, 16, 20),
@@ -122,15 +122,20 @@ class _SettingsPageState extends State<SettingsPage> {
                         icon: Icons.wb_sunny_outlined,
                         title: 'Morning report',
                         subtitle: 'Daily 7:00 AM summary',
-                        value: morningReport,
-                        onChanged: (v) => setState(() => morningReport = v),
+                        value: notifSettings.morningReportEnabled,
+                        onChanged: (v) => notification.setMorningReportEnabled(v),
                       ),
                       _SwitchRow(
                         icon: Icons.warning_amber_rounded,
                         title: 'Danger alerts',
-                        subtitle: 'Notify when AQI > 150',
-                        value: dangerAlerts,
-                        onChanged: (v) => setState(() => dangerAlerts = v),
+                        subtitle:
+                            'We’ll periodically check air quality and notify you when needed.',
+                        value: notifSettings.dangerAlertEnabled,
+                        onChanged: (v) => _onDangerAlertChanged(
+                          context,
+                          controller: notification,
+                          enabled: v,
+                        ),
                         isLast: true,
                       ),
                     ],
@@ -214,6 +219,99 @@ class _SettingsPageState extends State<SettingsPage> {
         color: AppColors.textSecondary.withValues(alpha: 0.9),
       ),
     );
+  }
+
+  Future<void> _onDangerAlertChanged(
+    BuildContext context, {
+    required NotificationSettingsController controller,
+    required bool enabled,
+  }) async {
+    if (!enabled) {
+      await controller.setDangerAlertEnabled(false);
+      return;
+    }
+
+    if (!context.mounted) {
+      return;
+    }
+    final askPermission = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Enable Notifications'),
+          content: const Text(
+            'AirAware needs notification permission to send air quality alerts.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('Not Now'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: const Text('Allow Notifications'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (askPermission != true) {
+      await controller.setDangerAlertEnabled(false);
+      return;
+    }
+
+    final permissionResult = await controller.requestNotificationPermission();
+    if (permissionResult != NotificationPermissionResult.granted) {
+      if (!context.mounted) {
+        return;
+      }
+      await controller.setDangerAlertEnabled(false);
+      if (!context.mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Alerts need notification permission to work.'),
+        ),
+      );
+      return;
+    }
+
+    await controller.setDangerAlertEnabled(true);
+
+    final batteryOptimizationEnabled =
+        await controller.isBatteryOptimizationEnabled();
+    if (!context.mounted) {
+      return;
+    }
+    if (batteryOptimizationEnabled == true) {
+      final openBatterySettings = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) {
+          return AlertDialog(
+            title: const Text('Keep danger alerts working'),
+            content: const Text(
+              'Android may delay background checks when battery optimization is enabled. To receive more reliable air quality alerts, allow AirAware to run in the background.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(false),
+                child: const Text('Not Now'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.of(dialogContext).pop(true),
+                child: const Text('Open Battery Settings'),
+              ),
+            ],
+          );
+        },
+      );
+
+      if (openBatterySettings == true) {
+        await controller.openBatteryOptimizationSettings();
+      }
+    }
   }
 }
 
