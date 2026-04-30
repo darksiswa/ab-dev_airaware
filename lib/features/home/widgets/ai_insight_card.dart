@@ -4,11 +4,7 @@ import '../../../shared/constants/app_colors.dart';
 import '../../../shared/widgets/app_card.dart';
 
 class AiInsightCard extends StatelessWidget {
-  const AiInsightCard({
-    required this.title,
-    required this.message,
-    super.key,
-  });
+  const AiInsightCard({required this.title, required this.message, super.key});
 
   final String title;
   final String message;
@@ -25,9 +21,12 @@ class AiInsightCard extends StatelessWidget {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(14),
               color: AppColors.accentSoft,
-              border: Border.all(color: AppColors.border),
+              border: Border.all(color: AppColors.borderStrong),
             ),
-            child: const Icon(Icons.auto_awesome, color: AppColors.accent),
+            child: const Icon(
+              Icons.auto_awesome,
+              color: AppColors.accentStrong,
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(

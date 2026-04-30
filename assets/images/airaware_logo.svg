@@ -1,0 +1,39 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="42%" r="72%">
+      <stop offset="0%" stop-color="#123C3C"/>
+      <stop offset="58%" stop-color="#061E24"/>
+      <stop offset="100%" stop-color="#02080D"/>
+    </radialGradient>
+    <linearGradient id="markA" x1="68" y1="202" x2="181" y2="50" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#8BF2B5"/>
+      <stop offset="0.42" stop-color="#5FCFA9"/>
+      <stop offset="0.74" stop-color="#E8FFF5"/>
+      <stop offset="1" stop-color="#5ED6D9"/>
+    </linearGradient>
+    <linearGradient id="markB" x1="109" y1="52" x2="206" y2="201" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#EAFDF4"/>
+      <stop offset="0.34" stop-color="#53D8CF"/>
+      <stop offset="1" stop-color="#3AA8C4"/>
+    </linearGradient>
+    <linearGradient id="wave" x1="38" y1="144" x2="206" y2="142" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#D8FFF4"/>
+      <stop offset="0.5" stop-color="#67D9D0"/>
+      <stop offset="1" stop-color="#A5F8E2"/>
+    </linearGradient>
+    <linearGradient id="leaf" x1="120" y1="214" x2="200" y2="154" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#E4FFF0"/>
+      <stop offset="0.48" stop-color="#69DFAE"/>
+      <stop offset="1" stop-color="#177E66"/>
+    </linearGradient>
+  </defs>
+  <rect x="8" y="8" width="240" height="240" rx="54" fill="url(#bg)"/>
+  <rect x="9" y="9" width="238" height="238" rx="53" stroke="#7BB8C2" stroke-opacity="0.22" stroke-width="2"/>
+  <g>
+    <path d="M40 158C73 177 108 162 128 124C143 96 151 64 177 51C164 50 151 57 141 72C129 89 119 112 107 134C91 164 68 181 40 158Z" fill="url(#markA)"/>
+    <path d="M177 51C191 57 198 75 207 95L230 207C213 207 199 201 192 185L154 88C148 72 159 55 177 51Z" fill="url(#markB)"/>
+    <path d="M32 149C65 173 98 162 132 146C161 133 188 132 210 158C183 146 159 150 132 164C93 184 58 177 32 149Z" fill="url(#wave)"/>
+    <path d="M35 181C71 205 105 189 139 171C164 158 189 156 210 180C181 169 160 177 133 194C93 219 60 207 35 181Z" fill="url(#wave)" opacity="0.92"/>
+    <path d="M119 209C147 207 170 198 190 180C202 169 216 166 230 173C212 185 199 204 174 213C151 221 134 218 119 209Z" fill="url(#leaf)"/>
+  </g>
+</svg>
