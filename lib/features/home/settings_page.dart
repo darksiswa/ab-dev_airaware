@@ -61,7 +61,7 @@ class _SettingsPageState extends State<SettingsPage> {
                               ),
                               child: const Icon(
                                 Icons.workspace_premium,
-                                color: AppColors.accent,
+                                color: AppColors.accentStrong,
                               ),
                             ),
                             const SizedBox(width: 12),
@@ -88,26 +88,62 @@ class _SettingsPageState extends State<SettingsPage> {
                           ],
                         ),
                         const SizedBox(height: 12),
-                        FilledButton.icon(
-                          onPressed: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  'In-app purchase flow (demo UI only).',
+                        SizedBox(
+                          width: double.infinity,
+                          child: FilledButton(
+                            onPressed: () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    'In-app purchase flow (demo UI only).',
+                                  ),
                                 ),
+                              );
+                            },
+                            style: FilledButton.styleFrom(
+                              backgroundColor: AppColors.accentSoft,
+                              foregroundColor: AppColors.accentStrong,
+                              side: const BorderSide(
+                                color: AppColors.borderStrong,
                               ),
-                            );
-                          },
-                          icon: const Icon(Icons.shopping_bag_outlined),
-                          label: const Text('Upgrade for Rp49.000/month'),
-                          style: FilledButton.styleFrom(
-                            backgroundColor: AppColors.accentSoft,
-                            foregroundColor: AppColors.accent,
-                            side: const BorderSide(color: AppColors.border),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(18),
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 15,
+                                horizontal: 16,
+                              ),
+                              visualDensity: VisualDensity.standard,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                             ),
-                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  Icons.shopping_bag_outlined,
+                                  size: 22,
+                                ),
+                                const SizedBox(width: 10),
+                                Flexible(
+                                  child: Text(
+                                    'Upgrade for Rp49.000/month',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    textAlign: TextAlign.center,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium
+                                        ?.copyWith(
+                                          color: AppColors.accentStrong,
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w700,
+                                          height: 1.1,
+                                        ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ],
@@ -123,7 +159,8 @@ class _SettingsPageState extends State<SettingsPage> {
                         title: 'Morning report',
                         subtitle: 'Daily 7:00 AM summary',
                         value: notifSettings.morningReportEnabled,
-                        onChanged: (v) => notification.setMorningReportEnabled(v),
+                        onChanged: (v) =>
+                            notification.setMorningReportEnabled(v),
                       ),
                       _SwitchRow(
                         icon: Icons.warning_amber_rounded,
@@ -215,7 +252,9 @@ class _SettingsPageState extends State<SettingsPage> {
     return Text(
       title,
       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-        letterSpacing: 2.8,
+        fontSize: 12,
+        fontWeight: FontWeight.w700,
+        letterSpacing: 1.5,
         color: AppColors.textSecondary.withValues(alpha: 0.9),
       ),
     );
@@ -280,8 +319,8 @@ class _SettingsPageState extends State<SettingsPage> {
 
     await controller.setDangerAlertEnabled(true);
 
-    final batteryOptimizationEnabled =
-        await controller.isBatteryOptimizationEnabled();
+    final batteryOptimizationEnabled = await controller
+        .isBatteryOptimizationEnabled();
     if (!context.mounted) {
       return;
     }
@@ -368,7 +407,7 @@ class _SwitchRow extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
               color: AppColors.accentSoft,
             ),
-            child: Icon(icon, color: AppColors.accent),
+            child: Icon(icon, color: AppColors.accentStrong),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -411,14 +450,14 @@ class _ChoiceChip extends StatelessWidget {
           color: active ? AppColors.accentSoft : Colors.transparent,
           border: Border.all(
             color: active
-                ? AppColors.accent.withValues(alpha: 0.75)
+                ? AppColors.accentStrong.withValues(alpha: 0.72)
                 : AppColors.textSecondary.withValues(alpha: 0.35),
           ),
         ),
         child: Text(
           label,
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-            color: active ? AppColors.accent : AppColors.textSecondary,
+            color: active ? AppColors.accentStrong : AppColors.textSecondary,
             fontWeight: FontWeight.w600,
           ),
         ),

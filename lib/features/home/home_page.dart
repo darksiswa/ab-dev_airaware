@@ -16,8 +16,8 @@ import 'widgets/ai_insight_card.dart';
 import 'widgets/air_metric_card.dart';
 import 'widgets/aqi_card.dart';
 
-const bool _showDebugPanel = kDebugMode &&
-    bool.fromEnvironment('SHOW_DEBUG_UI', defaultValue: false);
+const bool _showDebugPanel =
+    kDebugMode && bool.fromEnvironment('SHOW_DEBUG_UI', defaultValue: false);
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -42,11 +42,16 @@ class _HomePageState extends State<HomePage> {
 
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: RadialGradient(
-            center: Alignment(0, -1),
+            center: const Alignment(0, -1),
             radius: 1.5,
-            colors: [Color(0xFF11483F), AppColors.background],
+            colors: [
+              AppColors.accent.withValues(alpha: 0.12),
+              AppColors.backgroundLift,
+              AppColors.background,
+            ],
+            stops: const [0, 0.48, 1],
           ),
         ),
         child: SafeArea(
@@ -83,7 +88,7 @@ class _HomeTab extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const CircularProgressIndicator(color: AppColors.accent),
+            const CircularProgressIndicator(color: AppColors.accentStrong),
             const SizedBox(height: 12),
             Text(
               controller.locationStatusText,
@@ -184,7 +189,9 @@ class _HomeTab extends StatelessWidget {
                           height: 14,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            color: AppColors.accent,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              AppColors.accentStrong,
+                            ),
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -195,11 +202,12 @@ class _HomeTab extends StatelessWidget {
                       ],
                     ),
                   ],
-                  if (_showDebugPanel)
-                    _DebugPanel(controller: controller),
+                  if (_showDebugPanel) _DebugPanel(controller: controller),
                   if (controller.infoMessage != null &&
                       (_showDebugPanel ||
-                          !_isDebugOnlyInfoMessage(controller.infoMessage!))) ...[
+                          !_isDebugOnlyInfoMessage(
+                            controller.infoMessage!,
+                          ))) ...[
                     const SizedBox(height: 4),
                     Text(
                       controller.infoMessage!,
@@ -216,7 +224,9 @@ class _HomeTab extends StatelessWidget {
                     message: _statusMessage(data),
                     aqi: data.aqi,
                     onRefresh: () async {
-                      await context.read<AirQualityController>().manualRefresh();
+                      await context
+                          .read<AirQualityController>()
+                          .manualRefresh();
                       if (!context.mounted) {
                         return;
                       }
@@ -283,16 +293,16 @@ class _HomeTab extends StatelessWidget {
                   const SizedBox(height: 12),
                   FilledButton.icon(
                     onPressed: onOpenDetail,
-                    icon: const Text('View Full Detail'),
+                    icon: const Icon(Icons.arrow_forward_rounded),
                     iconAlignment: IconAlignment.end,
-                    label: const Icon(Icons.arrow_forward),
+                    label: const Text('View Full Detail'),
                     style: FilledButton.styleFrom(
                       backgroundColor: AppColors.accentSoft,
-                      foregroundColor: AppColors.accent,
+                      foregroundColor: AppColors.accentStrong,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(22),
                       ),
-                      side: const BorderSide(color: AppColors.border),
+                      side: const BorderSide(color: AppColors.borderStrong),
                       padding: const EdgeInsets.symmetric(
                         vertical: 20,
                         horizontal: 18,
@@ -312,7 +322,10 @@ class _HomeTab extends StatelessWidget {
                             borderRadius: BorderRadius.circular(12),
                             color: AppColors.accentSoft,
                           ),
-                          child: const Icon(Icons.air, color: AppColors.accent),
+                          child: const Icon(
+                            Icons.air,
+                            color: AppColors.accentStrong,
+                          ),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
@@ -499,7 +512,14 @@ class _BottomNav extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(26),
         border: Border.all(color: AppColors.border),
-        color: AppColors.surface.withValues(alpha: 0.45),
+        color: AppColors.surface.withValues(alpha: 0.78),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.2),
+            blurRadius: 22,
+            offset: const Offset(0, 10),
+          ),
+        ],
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -549,7 +569,7 @@ class _NavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = active ? AppColors.accent : AppColors.textSecondary;
+    final color = active ? AppColors.accentStrong : AppColors.textSecondary;
 
     return Material(
       color: Colors.transparent,
@@ -558,27 +578,38 @@ class _NavItem extends StatelessWidget {
         onTap: onTap,
         child: SizedBox(
           width: 72,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, color: color),
-              const SizedBox(height: 4),
-              Text(
-                label,
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyMedium?.copyWith(color: color),
-              ),
-              const SizedBox(height: 4),
-              Container(
-                width: 6,
-                height: 6,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: active ? AppColors.accent : Colors.transparent,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            curve: Curves.easeOutCubic,
+            padding: const EdgeInsets.symmetric(vertical: 7),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(18),
+              color: active ? AppColors.accentSoft : Colors.transparent,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, color: color, size: 23),
+                const SizedBox(height: 4),
+                Text(
+                  label,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: color,
+                    fontSize: 12,
+                    fontWeight: active ? FontWeight.w700 : FontWeight.w500,
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 4),
+                Container(
+                  width: active ? 14 : 6,
+                  height: 3,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(999),
+                    color: active ? AppColors.accentStrong : Colors.transparent,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

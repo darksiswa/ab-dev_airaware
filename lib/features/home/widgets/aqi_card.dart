@@ -30,12 +30,19 @@ class AqiCard extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 20),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColors.border, width: 0.9),
         gradient: const LinearGradient(
-          colors: [Color(0xAA0E2F2F), Color(0x44061315)],
+          colors: [Color(0xE315262D), Color(0xB70B171C)],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.22),
+            blurRadius: 28,
+            offset: const Offset(0, 16),
+          ),
+        ],
       ),
       child: Column(
         children: [
@@ -63,8 +70,9 @@ class AqiCard extends StatelessWidget {
                             city,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context).textTheme.titleMedium
-                                ?.copyWith(height: 1.15),
+                            style: Theme.of(
+                              context,
+                            ).textTheme.titleMedium?.copyWith(height: 1.12),
                           ),
                         ),
                       ],
@@ -97,13 +105,14 @@ class AqiCard extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(999),
-                  border: Border.all(
-                    color: statusColor.withValues(alpha: 0.65),
-                  ),
-                  color: statusColor.withValues(alpha: 0.13),
+                  border: Border.all(color: statusColor.withValues(alpha: 0.5)),
+                  color: statusColor.withValues(alpha: 0.12),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -114,7 +123,7 @@ class AqiCard extends StatelessWidget {
                       status.toUpperCase(),
                       style: Theme.of(context).textTheme.labelLarge?.copyWith(
                         color: statusColor,
-                        letterSpacing: 1.1,
+                        letterSpacing: 0.9,
                       ),
                     ),
                   ],
@@ -127,7 +136,6 @@ class AqiCard extends StatelessWidget {
             message,
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
               color: AppColors.textPrimary.withValues(alpha: 0.92),
-              fontStyle: FontStyle.italic,
               height: 1.35,
             ),
           ),
@@ -142,12 +150,12 @@ class AqiCard extends StatelessWidget {
     switch (value.toLowerCase()) {
       case 'good':
       case 'safe':
-        return AppColors.accent;
+        return AppColors.goodAccent;
       case 'moderate':
       case 'caution':
         return AppColors.moderateAccent;
       default:
-        return const Color(0xFFFF6464);
+        return AppColors.unhealthyAccent;
     }
   }
 }
@@ -183,18 +191,13 @@ class _AqiRing extends StatelessWidget {
             height: 200,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              gradient: RadialGradient(
-                colors: [
-                  AppColors.surface.withValues(alpha: 0.55),
-                  AppColors.background,
-                ],
-              ),
-              border: Border.all(color: color.withValues(alpha: 0.35)),
+              color: AppColors.backgroundLift.withValues(alpha: 0.72),
+              border: Border.all(color: AppColors.border),
               boxShadow: [
                 BoxShadow(
-                  color: color.withValues(alpha: 0.22),
-                  blurRadius: 36,
-                  spreadRadius: 2,
+                  color: color.withValues(alpha: 0.1),
+                  blurRadius: 24,
+                  spreadRadius: 1,
                 ),
               ],
             ),
@@ -207,12 +210,15 @@ class _AqiRing extends StatelessWidget {
                     fontSize: 72,
                     color: color,
                     fontWeight: FontWeight.w700,
+                    height: 0.95,
+                    fontFeatures: const [FontFeature.tabularFigures()],
                   ),
                 ),
                 Text(
                   'AQI',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    letterSpacing: 5,
+                    letterSpacing: 2.2,
+                    fontWeight: FontWeight.w700,
                     color: AppColors.textSecondary,
                   ),
                 ),
@@ -257,14 +263,14 @@ class _RingPainter extends CustomPainter {
     final ringPaint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 8
-      ..color = color.withValues(alpha: 0.2)
+      ..color = AppColors.border
       ..strokeCap = StrokeCap.round;
 
     final activePaint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 10
       ..shader = SweepGradient(
-        colors: [color.withValues(alpha: 0.15), color],
+        colors: [color.withValues(alpha: 0.26), color],
         startAngle: -math.pi / 2,
         endAngle: 3 * math.pi / 2,
       ).createShader(Rect.fromCircle(center: center, radius: radius - 22))

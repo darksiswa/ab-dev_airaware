@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../home/home_page.dart';
 import '../../shared/constants/app_colors.dart';
@@ -42,7 +43,7 @@ class _SplashPageState extends State<SplashPage> {
           gradient: RadialGradient(
             center: Alignment(0, -0.25),
             radius: 1.2,
-            colors: [Color(0xFF0C3130), AppColors.background],
+            colors: [Color(0xFF143A39), AppColors.background],
           ),
         ),
         child: SafeArea(
@@ -51,19 +52,20 @@ class _SplashPageState extends State<SplashPage> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
-                  width: 86,
-                  height: 86,
+                  width: 120,
+                  height: 120,
                   decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: AppColors.accentSoft,
-                    border: Border.all(
-                      color: AppColors.accent.withValues(alpha: 0.45),
-                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.accent.withValues(alpha: 0.15),
+                        blurRadius: 34,
+                        spreadRadius: 4,
+                      ),
+                    ],
                   ),
-                  child: const Icon(
-                    Icons.air_rounded,
-                    size: 44,
-                    color: AppColors.accent,
+                  child: SvgPicture.asset(
+                    'assets/images/airaware_logo.svg',
+                    fit: BoxFit.contain,
                   ),
                 ),
                 const SizedBox(height: 20),

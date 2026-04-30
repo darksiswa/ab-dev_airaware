@@ -109,9 +109,9 @@ class _TipCard extends StatelessWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: AppColors.accentSoft,
-              border: Border.all(color: AppColors.border),
+              border: Border.all(color: AppColors.borderStrong),
             ),
-            child: Icon(icon, color: AppColors.accent, size: 30),
+            child: Icon(icon, color: AppColors.accentStrong, size: 30),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -136,7 +136,7 @@ class _TipCard extends StatelessWidget {
                       height: 10,
                       decoration: const BoxDecoration(
                         shape: BoxShape.circle,
-                        color: AppColors.accent,
+                        color: AppColors.accentStrong,
                       ),
                     ),
                   ],
@@ -155,7 +155,7 @@ class _TipCard extends StatelessWidget {
           const SizedBox(width: 6),
           const Icon(
             Icons.chevron_right_rounded,
-            color: AppColors.accent,
+            color: AppColors.accentStrong,
             size: 34,
           ),
         ],
@@ -177,14 +177,16 @@ class _SponsoredBar extends StatelessWidget {
           color: AppColors.textSecondary.withValues(alpha: 0.35),
           style: BorderStyle.solid,
         ),
-        color: const Color(0x2209171A),
+        color: AppColors.surface.withValues(alpha: 0.2),
       ),
       child: Row(
         children: [
           Text(
             'SPONSORED',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              letterSpacing: 2.2,
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 1.4,
               color: AppColors.textSecondary.withValues(alpha: 0.85),
             ),
           ),
@@ -200,10 +202,10 @@ class _SponsoredBar extends StatelessWidget {
             'Ad · Air Purifier Deals',
             style: Theme.of(
               context,
-            ).textTheme.bodyLarge?.copyWith(color: AppColors.accent),
+            ).textTheme.bodyLarge?.copyWith(color: AppColors.accentStrong),
           ),
           const SizedBox(width: 4),
-          const Icon(Icons.chevron_right, color: AppColors.accent),
+          const Icon(Icons.chevron_right, color: AppColors.accentStrong),
         ],
       ),
     );

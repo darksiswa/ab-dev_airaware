@@ -23,7 +23,7 @@ class DetailPage extends StatelessWidget {
 
     if (data == null) {
       return const Center(
-        child: CircularProgressIndicator(color: AppColors.accent),
+        child: CircularProgressIndicator(color: AppColors.accentStrong),
       );
     }
     final precaution = _precautionGenerator.generate(
@@ -106,8 +106,7 @@ class DetailPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 18),
                   _SectionLabel(
-                    label:
-                        '${data.forecast7Days.length}-DAY FORECAST',
+                    label: '${data.forecast7Days.length}-DAY FORECAST',
                   ),
                   const SizedBox(height: 10),
                   if (data.forecast7Days.isEmpty)
@@ -156,7 +155,9 @@ class _SectionLabel extends StatelessWidget {
     return Text(
       label,
       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-        letterSpacing: 3.6,
+        fontSize: 12,
+        fontWeight: FontWeight.w700,
+        letterSpacing: 1.6,
         color: AppColors.textSecondary.withValues(alpha: 0.9),
       ),
     );
@@ -176,12 +177,19 @@ class _SummaryCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColors.border, width: 0.9),
         gradient: const LinearGradient(
-          colors: [Color(0x990E3533), Color(0x33081114)],
+          colors: [Color(0xD915262D), Color(0xA60B171C)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.2),
+            blurRadius: 26,
+            offset: const Offset(0, 14),
+          ),
+        ],
       ),
       padding: const EdgeInsets.all(16),
       child: Row(
@@ -242,21 +250,21 @@ class _SummaryCard extends StatelessWidget {
 
   Color _statusColor(String status) {
     if (status == 'Good') {
-      return AppColors.accent;
+      return AppColors.goodAccent;
     }
     if (status == 'Moderate') {
       return AppColors.moderateAccent;
     }
     if (status == 'Unhealthy for Sensitive Groups') {
-      return const Color(0xFFFF6464);
+      return AppColors.unhealthyAccent;
     }
     if (status == 'Unhealthy') {
-      return const Color(0xFFFF6464);
+      return AppColors.unhealthyAccent;
     }
     if (status == 'Very Unhealthy') {
-      return const Color(0xFFBE63F9);
+      return AppColors.veryUnhealthyAccent;
     }
-    return const Color(0xFF8A1C1C);
+    return AppColors.hazardousAccent;
   }
 }
 
@@ -296,6 +304,7 @@ class _SummaryRing extends StatelessWidget {
                 fontSize: 38,
                 color: color,
                 fontWeight: FontWeight.w700,
+                fontFeatures: const [FontFeature.tabularFigures()],
               ),
             ),
           ),
@@ -320,7 +329,7 @@ class _SummaryRingPainter extends CustomPainter {
     final track = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 10
-      ..color = Colors.white12
+      ..color = AppColors.border
       ..strokeCap = StrokeCap.round;
 
     final active = Paint()
@@ -372,6 +381,7 @@ class _PollutantCard extends StatelessWidget {
                 name,
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                   color: AppColors.textPrimary.withValues(alpha: 0.85),
+                  fontWeight: FontWeight.w700,
                 ),
               ),
               Text(
@@ -380,6 +390,7 @@ class _PollutantCard extends StatelessWidget {
                   fontSize: 22,
                   fontWeight: FontWeight.w700,
                   color: AppColors.textPrimary,
+                  fontFeatures: const [FontFeature.tabularFigures()],
                 ),
               ),
             ],
@@ -391,7 +402,13 @@ class _PollutantCard extends StatelessWidget {
               value: progress,
               minHeight: 7,
               backgroundColor: Colors.white10,
-              valueColor: const AlwaysStoppedAnimation<Color>(AppColors.accent),
+              valueColor: AlwaysStoppedAnimation<Color>(
+                progress > 0.66
+                    ? AppColors.unhealthyAccent
+                    : progress > 0.35
+                    ? AppColors.moderateAccent
+                    : AppColors.goodAccent,
+              ),
             ),
           ),
           const SizedBox(height: 8),
@@ -406,7 +423,6 @@ class _PollutantCard extends StatelessWidget {
       ),
     );
   }
-
 }
 
 String _forecastLabel(String status) {
@@ -414,7 +430,7 @@ String _forecastLabel(String status) {
     return 'OK';
   }
   if (status == 'Moderate') {
-    return '⚠';
+    return 'MID';
   }
   if (status == 'Unhealthy for Sensitive Groups') {
     return 'USG';
@@ -445,13 +461,9 @@ class _ForecastChip extends StatelessWidget {
         border: Border.all(
           color: active ? dotColor.withValues(alpha: 0.7) : AppColors.border,
         ),
-        gradient: LinearGradient(
-          colors: active
-              ? [AppColors.moderateSoft, const Color(0x330A1A1D)]
-              : const [Color(0x550B1C1E), Color(0x22071315)],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-        ),
+        color: active
+            ? AppColors.surfaceMuted
+            : AppColors.surface.withValues(alpha: 0.5),
       ),
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
       child: Column(
@@ -489,16 +501,16 @@ class _ForecastChip extends StatelessWidget {
   Color _dotColor(AqiCategory category) {
     switch (category) {
       case AqiCategory.good:
-        return AppColors.accent;
+        return AppColors.goodAccent;
       case AqiCategory.moderate:
         return AppColors.moderateAccent;
       case AqiCategory.unhealthySensitive:
       case AqiCategory.unhealthy:
-        return const Color(0xFFFF6464);
+        return AppColors.unhealthyAccent;
       case AqiCategory.veryUnhealthy:
-        return const Color(0xFFBE63F9);
+        return AppColors.veryUnhealthyAccent;
       case AqiCategory.hazardous:
-        return const Color(0xFF8A1C1C);
+        return AppColors.hazardousAccent;
     }
   }
 }

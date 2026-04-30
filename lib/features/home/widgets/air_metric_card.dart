@@ -25,7 +25,7 @@ class AirMetricCard extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Icon(icon, color: AppColors.accent, size: 20),
+          Icon(icon, color: AppColors.accentStrong, size: 20),
           const SizedBox(height: 5),
           FittedBox(
             fit: BoxFit.scaleDown,
@@ -36,7 +36,9 @@ class AirMetricCard extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 fontSize: 30,
-                color: AppColors.accent,
+                color: AppColors.textPrimary,
+                height: 1,
+                fontFeatures: const [FontFeature.tabularFigures()],
               ),
             ),
           ),
@@ -49,7 +51,8 @@ class AirMetricCard extends StatelessWidget {
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               fontSize: 11,
-              letterSpacing: 0.3,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.7,
               color: AppColors.textPrimary.withValues(alpha: 0.75),
             ),
           ),
