@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../shared/ads/banner_ad_widget.dart';
 import '../../shared/constants/app_colors.dart';
 import '../../shared/widgets/app_card.dart';
 import '../notifications/presentation/notification_settings_controller.dart';
@@ -149,6 +150,17 @@ class _SettingsPageState extends State<SettingsPage> {
                       ],
                     ),
                   ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Sponsored · Ad',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: AppColors.textSecondary.withValues(alpha: 0.9),
+                      letterSpacing: 1.1,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Center(child: BannerAdWidget()),
                   const SizedBox(height: 14),
                   _sectionTitle(context, 'NOTIFICATIONS'),
                   const SizedBox(height: 6),

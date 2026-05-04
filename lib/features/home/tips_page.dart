@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../shared/ads/native_ad_widget.dart';
 import '../../shared/constants/app_colors.dart';
 import '../../shared/widgets/app_card.dart';
 
@@ -38,7 +39,9 @@ class TipsPage extends StatelessWidget {
                         'Apply SPF 30+ if you plan to be outdoors more than 30 minutes.',
                   ),
                   SizedBox(height: 10),
-                  _SponsoredBar(),
+                  NativeAdWidget(
+                    fallback: _SponsoredBar(),
+                  ),
                   SizedBox(height: 10),
                   _TipCard(
                     icon: Icons.water_drop,
@@ -199,7 +202,7 @@ class _SponsoredBar extends StatelessWidget {
           ),
           const SizedBox(width: 10),
           Text(
-            'Ad · Air Purifier Deals',
+            'Ad',
             style: Theme.of(
               context,
             ).textTheme.bodyLarge?.copyWith(color: AppColors.accentStrong),

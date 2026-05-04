@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 
 import '../../shared/constants/app_colors.dart';
+import '../../shared/ads/interstitial_ad_manager.dart';
 import '../../shared/widgets/app_card.dart';
 import '../air_quality/domain/air_quality_model.dart';
 import '../air_quality/domain/air_precaution_generator.dart';
@@ -28,8 +29,27 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
+  final InterstitialAdManager _interstitialAdManager =
+      InterstitialAdManager.instance;
 
-  void _goToDetail() => setState(() => _selectedIndex = 1);
+  @override
+  void initState() {
+    super.initState();
+    _interstitialAdManager.load();
+  }
+
+  void _goToDetail() {
+    _onTabSelected(1);
+  }
+
+  void _onTabSelected(int index) {
+    setState(() => _selectedIndex = index);
+    if (index == 1) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _interstitialAdManager.showIfAllowed();
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -62,7 +82,7 @@ class _HomePageState extends State<HomePage> {
               ),
               _BottomNav(
                 selectedIndex: _selectedIndex,
-                onTap: (index) => setState(() => _selectedIndex = index),
+                onTap: _onTabSelected,
               ),
             ],
           ),
